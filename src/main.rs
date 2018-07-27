@@ -18,6 +18,7 @@ fn main() {
                     .spawn();
                 match process_result {
                     Ok(mut process) => {
+                        // TODO maybe display return code?
                         let _ = process.wait();
                     },
                     Err(err) => println!("error while trying to run command: {:?}", err),
