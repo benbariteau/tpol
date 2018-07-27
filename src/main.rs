@@ -3,7 +3,11 @@ use rustyline::Editor;
 use rustyline::error::ReadlineError;
 use rustyline::completion::Completer;
 use std::env::args;
+use std::path::PathBuf;
 use std::process::Command;
+use std::env::home_dir;
+use std::fs::create_dir;
+use std::fs::File;
 
 struct BashCompleter{
     command: String,
@@ -56,8 +60,43 @@ impl Completer for BashCompleter {
 fn main() {
     // TODO use a real arg parser
     let program = args().nth(1).expect("no program specified");
+
     let mut line_editor = Editor::<BashCompleter>::new();
     line_editor.set_completer(Some(BashCompleter{command: program.to_string()}));
+
+    let history_file_option = match home_dir() {
+        Some(home) => {
+            let config_dir: PathBuf = [home, PathBuf::from(".tpol")].iter().collect();
+            if !config_dir.exists() {
+                println!("creating config dir at {}", config_dir.to_str().unwrap());
+                create_dir(&config_dir).unwrap();
+            }
+
+            let history_dir: PathBuf = [config_dir, PathBuf::from("history")].iter().collect();
+            if !history_dir.exists() {
+                println!("creating history dir at {}", history_dir.to_str().unwrap());
+                create_dir(&history_dir).unwrap();
+            }
+
+            let command_history: PathBuf = [history_dir, PathBuf::from(&program)].iter().collect();
+            if !command_history.exists() {
+                println!("creating history file for {} at {}", &program, command_history.to_str().unwrap());
+                let _ = File::create(&command_history).unwrap();
+            }
+
+            Some(command_history)
+        }
+        None => None,
+    };
+
+    if let Some(ref history_file) = history_file_option.clone() {
+        if let Err(err) = line_editor.load_history(history_file) {
+            eprintln!("Warning: error while trying to load history file {}: {}", history_file.to_str().unwrap(), err);
+        }
+    } else {
+        eprintln!("Warning: can't find home directory, no history will be saved");
+    }
+
     loop {
         let line_result = line_editor.readline(format!(">{} ", program.clone()).as_str());
         match line_result {
@@ -70,20 +109,28 @@ fn main() {
                     Ok(mut process) => {
                         // TODO maybe display return code?
                         let _ = process.wait();
+                        // TODO maybe only save in history if it's successful?
+                        line_editor.add_history_entry(&line);
                     },
                     Err(err) => println!("error while trying to run command: {:?}", err),
                 }
             },
             Err(ReadlineError::Interrupted) => {
-                return;
+                break;
             },
             Err(ReadlineError::Eof) => {
-                return;
+                break;
             },
             Err(err) => {
                 eprintln!("{:?}", err);
-                return;
+                break;
             }
+        }
+    }
+
+    if let Some(ref history_file) = history_file_option {
+        if let Err(err) = line_editor.save_history(history_file) {
+            eprintln!("Warning: error while trying to load history file {}: {}", history_file.to_str().unwrap(), err);
         }
     }
 }
