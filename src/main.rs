@@ -140,22 +140,32 @@ fn main() {
         let line_result = line_editor.readline(format!("{}>{} ", prompt_string, &program).as_str());
         match line_result {
             Ok(line) => {
-                match line.as_ref() {
-                    "" => {}, // ignore empty commands
-                    _ => {
-                        let mut process_result = Command::new(&program)
-                            // TODO deal with quoted strings
-                            .args(line.split(" ").collect::<Vec<&str>>())
-                            .spawn();
-                        match process_result {
-                            Ok(mut process) => {
-                                // TODO maybe display return code?
-                                let _ = process.wait();
-                                // TODO maybe only save in history if it's successful?
-                                line_editor.add_history_entry(&line);
-                            },
-                            Err(err) => println!("error while trying to run command: {:?}", err),
-                        }
+                if line == "" || line == "!" {
+                    // ignore empty commands
+                } else {
+                    let mut command = if line.starts_with("!") {
+                        let parts = line.split(" ");
+                        let command = &parts.clone().nth(0).unwrap()[1..];
+                        let args: Vec<&str> = parts.skip(1).collect();
+                        println!("{} {:?}", command, args);
+                        let mut command = Command::new(command);
+                        command.args(args);
+                        command
+                    } else {
+                        let mut command = Command::new(&program);
+                        // TODO deal with quoted strings
+                        command.args(line.split(" ").collect::<Vec<&str>>());
+                        command
+                    };
+                    let mut process_result = command.spawn();
+                    match process_result {
+                        Ok(mut process) => {
+                            // TODO maybe display return code?
+                            let _ = process.wait();
+                            // TODO maybe only save in history if it's successful?
+                            line_editor.add_history_entry(&line);
+                        },
+                        Err(err) => println!("error while trying to run command: {:?}", err),
                     }
                 }
             },
