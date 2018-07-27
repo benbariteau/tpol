@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["Ben Bariteau <\"ben.bariteau@gmail.com\">"]
 
 [dependencies]
+clap = "^2.31.2"
 rustyline = "^1.0.0"
