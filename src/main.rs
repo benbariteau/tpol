@@ -140,18 +140,23 @@ fn main() {
         let line_result = line_editor.readline(format!("{}>{} ", prompt_string, &program).as_str());
         match line_result {
             Ok(line) => {
-                let mut process_result = Command::new(&program)
-                    // TODO deal with quoted strings
-                    .args(line.split(" ").collect::<Vec<&str>>())
-                    .spawn();
-                match process_result {
-                    Ok(mut process) => {
-                        // TODO maybe display return code?
-                        let _ = process.wait();
-                        // TODO maybe only save in history if it's successful?
-                        line_editor.add_history_entry(&line);
-                    },
-                    Err(err) => println!("error while trying to run command: {:?}", err),
+                match line.as_ref() {
+                    "" => {}, // ignore empty commands
+                    _ => {
+                        let mut process_result = Command::new(&program)
+                            // TODO deal with quoted strings
+                            .args(line.split(" ").collect::<Vec<&str>>())
+                            .spawn();
+                        match process_result {
+                            Ok(mut process) => {
+                                // TODO maybe display return code?
+                                let _ = process.wait();
+                                // TODO maybe only save in history if it's successful?
+                                line_editor.add_history_entry(&line);
+                            },
+                            Err(err) => println!("error while trying to run command: {:?}", err),
+                        }
+                    }
                 }
             },
             Err(ReadlineError::Interrupted) => {
