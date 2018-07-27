@@ -10,6 +10,7 @@ fn main() {
         match line_result {
             Ok(line) => {
                 let mut process_result = Command::new("git")
+                    // TODO deal with quoted strings
                     .args(line.split(" ").collect::<Vec<&str>>())
                     .spawn();
                 match process_result {
