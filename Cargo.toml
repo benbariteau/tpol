@@ -6,3 +6,5 @@ authors = ["Ben Bariteau <\"ben.bariteau@gmail.com\">"]
 [dependencies]
 clap = "^2.31.2"
 rustyline = "^1.0.0"
+serde = "^1.0.0"
+serde_json = "^1.0.0"
