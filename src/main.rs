@@ -147,7 +147,6 @@ fn main() {
                         let parts = line.split(" ");
                         let command = &parts.clone().nth(0).unwrap()[1..];
                         let args: Vec<&str> = parts.skip(1).collect();
-                        println!("{} {:?}", command, args);
                         let mut command = Command::new(command);
                         command.args(args);
                         command
