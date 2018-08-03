@@ -153,7 +153,7 @@ fn main() {
                     } else {
                         let mut command = Command::new(&program);
                         // TODO deal with quoted strings
-                        command.args(line.split(" ").collect::<Vec<&str>>());
+                        command.args(line.trim().split(" ").collect::<Vec<&str>>());
                         command
                     };
                     let mut process_result = command.spawn();
