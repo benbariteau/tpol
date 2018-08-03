@@ -137,7 +137,7 @@ fn main() {
             None => "".to_string(),
         };
 
-        let line_result = line_editor.readline(format!("{}>{} ", prompt_string, &program).as_str());
+        let line_result = line_editor.readline(format!("{}>{} ", prompt_string.trim(), &program).as_str());
         match line_result {
             Ok(line) => {
                 if line == "" || line == "!" {
